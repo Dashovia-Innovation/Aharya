@@ -115,19 +115,6 @@ const makeStyles = (c: AuthPalette) =>
     // Apple's glyph is taller than wide; nudge up so it sits optically centred
     appleLogo: { position: 'absolute', left: 23, width: 17, height: 20, top: 14 },
     socialText: { color: c.socialText, fontSize: 16, fontWeight: '500' },
-    chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-    chip: {
-      minHeight: 44,
-      paddingHorizontal: 16,
-      borderRadius: 999,
-      borderWidth: 1,
-      borderColor: c.border,
-      backgroundColor: c.surface,
-      justifyContent: 'center',
-    },
-    chipOn: { backgroundColor: c.buttonBg, borderColor: c.buttonBg },
-    chipText: { color: c.text, fontSize: 15, fontWeight: '500' },
-    chipTextOn: { color: c.buttonText, fontWeight: '600' },
     footer: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginTop: 8 },
   });
 
@@ -211,54 +198,6 @@ export function Field({ label, icon, error, secure, ...input }: FieldProps) {
             <Text style={styles.link}>{hidden ? 'Show' : 'Hide'}</Text>
           </Pressable>
         )}
-      </View>
-      {!!error && <Text style={styles.error}>{error}</Text>}
-    </View>
-  );
-}
-
-/** Pill choices. `multi` lets several be selected (checkbox), otherwise one (radio). */
-export function Chips({
-  label,
-  options,
-  selected,
-  onChange,
-  multi,
-  error,
-}: {
-  label: string;
-  options: string[];
-  selected: string[];
-  onChange: (next: string[]) => void;
-  multi?: boolean;
-  error?: string;
-}) {
-  const { styles } = useAuthTheme();
-  const toggle = (o: string) =>
-    onChange(
-      !multi ? [o] : selected.includes(o) ? selected.filter((x) => x !== o) : [...selected, o],
-    );
-  return (
-    <View>
-      <Text style={styles.label}>{label}</Text>
-      <View style={styles.chips} accessibilityRole={multi ? undefined : 'radiogroup'}>
-        {options.map((o) => {
-          const on = selected.includes(o);
-          return (
-            <Pressable
-              key={o}
-              onPress={() => toggle(o)}
-              accessibilityRole={multi ? 'checkbox' : 'radio'}
-              accessibilityState={{ checked: on }}
-              style={({ pressed }) => [
-                styles.chip,
-                on && styles.chipOn,
-                pressed && styles.pressed,
-              ]}>
-              <Text style={[styles.chipText, on && styles.chipTextOn]}>{o}</Text>
-            </Pressable>
-          );
-        })}
       </View>
       {!!error && <Text style={styles.error}>{error}</Text>}
     </View>
