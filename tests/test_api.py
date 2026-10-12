@@ -40,6 +40,15 @@ def test_full_assessment(client, form, files):
     assert "Cook every dish without onion, garlic or root vegetables" in plan["guidance"]
 
 
+def test_blood_report_alone_is_enough(client, form, files):
+    assessment_id = _submit(client, form, {"blood_report": files["blood_report"]}).json()["assessment_id"]
+    status = client.get(f"/v1/assessments/{assessment_id}").json()
+    assert status["status"] == "completed"
+    assert [report["kind"] for report in status["reports"]] == ["blood"]
+    biomarkers = client.get(f"/v1/assessments/{assessment_id}/biomarkers").json()["biomarkers"]
+    assert {b["source"] for b in biomarkers} == {"blood"}
+
+
 def test_urgent_value_blocks_the_plan(client, form, files):
     rows = BLOOD_ROWS + ["HbA1c                        11.4          %             4.0 - 5.6"]
     files["blood_report"] = ("blood.pdf", make_pdf(rows), "application/pdf")
@@ -82,7 +91,7 @@ def test_validation(client, form, files):
     assert _submit(client, form, files, phone="12345").status_code == 422
     assert _submit(client, form, files, age=12).status_code == 422
     assert _submit(client, form, files, diet_type="keto").status_code == 422
-    assert _submit(client, form, {"blood_report": files["blood_report"]}).status_code == 422
+    assert _submit(client, form, {"urine_report": files["urine_report"]}).status_code == 422
     files["urine_report"] = ("urine.pdf", b"this is not a pdf", "application/pdf")
     assert _submit(client, form, files).status_code == 422
 

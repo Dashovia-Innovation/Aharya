@@ -36,9 +36,9 @@ def _run(db: Session, assessment: Assessment) -> None:
         try:
             extracted = extract_report(report.kind, storage.read(report.storage_path), report.media_type)
         except ExtractionError as exc:
-            if report.kind != "inbody":
+            if report.kind == "blood":
                 raise
-            # The body-composition report is optional, so carry on without it.
+            # Urine and body-composition reports are optional, so carry on without them.
             warnings.append(f"{exc} The plan was built without it.")
             continue
         taken = rules.parse_date(extracted.report_date)

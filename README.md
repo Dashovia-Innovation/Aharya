@@ -2,7 +2,7 @@
 
 Lab reports in, a personalised Indian meal plan and weekly grocery list out.
 
-A user submits their profile with a blood report, a urine report and an optional
+A user submits their profile with a blood report and, optionally, a urine report and a
 body-composition (InBody) report. Aharya reads the reports, flags what matters,
 computes daily targets and returns a 1 to 4 week meal plan with a grocery list.
 
@@ -50,8 +50,8 @@ Two modes:
 | `DELETE` | `/v1/assessments/{id}` | Delete the assessment and its files |
 
 Required form fields: `name`, `age`, `gender`, `alcohol`, `smoker`, `email`, `phone`,
-`consent`, `blood_report`, `urine_report`.
-Optional: `inbody_report`, `diet_type` (veg, eggetarian, non_veg, jain, vegan),
+`consent`, `blood_report`.
+Optional: `urine_report`, `inbody_report`, `diet_type` (veg, eggetarian, non_veg, jain, vegan),
 `cuisine` (north, south, west, east), `activity_level`, `allergies`, `conditions`,
 `medications`, `height_cm`, `weight_kg`, `waist_cm`, `weeks` (1 to 4).
 

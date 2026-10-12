@@ -66,7 +66,7 @@ async def create_assessment(
     phone: Annotated[str, Form()],
     consent: Annotated[bool, Form(description="User agrees to their health reports being processed.")],
     blood_report: Annotated[UploadFile, File()],
-    urine_report: Annotated[UploadFile, File()],
+    urine_report: Annotated[UploadFile | None, File()] = None,
     inbody_report: Annotated[UploadFile | None, File()] = None,
     diet_type: Annotated[DietType, Form()] = "veg",
     cuisine: Annotated[Cuisine, Form()] = "north",
@@ -90,7 +90,9 @@ async def create_assessment(
     if not _PHONE.match(phone):
         raise _unprocessable("phone", "Enter a valid 10-digit Indian mobile number.")
 
-    uploads = [("blood", "blood_report", blood_report), ("urine", "urine_report", urine_report)]
+    uploads = [("blood", "blood_report", blood_report)]
+    if urine_report is not None:
+        uploads.append(("urine", "urine_report", urine_report))
     if inbody_report is not None:
         uploads.append(("inbody", "inbody_report", inbody_report))
     files = [(kind, upload.filename or kind, *await _read_report(field, upload)) for kind, field, upload in uploads]
