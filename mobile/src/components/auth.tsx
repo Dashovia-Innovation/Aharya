@@ -1,5 +1,4 @@
 import { Image } from 'expo-image';
-import { SymbolView } from 'expo-symbols';
 import { StatusBar } from 'expo-status-bar';
 import { useState, type ReactNode } from 'react';
 import {
@@ -37,6 +36,7 @@ const palettes = {
     placeholder: 'rgba(255,255,255,0.5)',
     surface: 'rgba(255,255,255,0.08)',
     border: 'rgba(255,255,255,0.35)',
+    card: '#1C1C1E',
     link: brand.leaf,
     error: '#FFB4A9',
     buttonBg: brand.white,
@@ -54,6 +54,7 @@ const palettes = {
     placeholder: 'rgba(0,0,0,0.45)',
     surface: 'rgba(11,79,85,0.04)',
     border: 'rgba(0,0,0,0.45)',
+    card: '#F1F4F4',
     link: brand.deep,
     error: '#B42318',
     buttonBg: brand.deep,
@@ -160,27 +161,17 @@ export function AuthScreen({
 
 type FieldProps = TextInputProps & {
   label: string;
-  icon?: 'mail' | 'lock';
   error?: string;
   secure?: boolean;
 };
 
-export function Field({ label, icon, error, secure, ...input }: FieldProps) {
+export function Field({ label, error, secure, ...input }: FieldProps) {
   const { c, styles } = useAuthTheme();
   const [hidden, setHidden] = useState(true);
   return (
     <View>
       <Text style={styles.label}>{label}</Text>
       <View style={[styles.field, !!error && styles.fieldError]}>
-        {icon && (
-          <SymbolView
-            accessible={false}
-            importantForAccessibility="no"
-            name={icon === 'mail' ? { ios: 'envelope', android: 'mail', web: 'mail' } : 'lock'}
-            size={18}
-            tintColor={c.muted}
-          />
-        )}
         <TextInput
           style={styles.input}
           accessibilityLabel={label}
