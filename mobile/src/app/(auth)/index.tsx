@@ -67,7 +67,7 @@ export default function Welcome() {
         <Text style={styles.brand}>aharya</Text>
         {!last && (
           <Pressable
-            onPress={() => router.push('/sign-up')}
+            onPress={() => router.push('/onboarding')}
             accessibilityRole="button"
             style={styles.skip}>
             <Text style={styles.skipText}>Skip</Text>
@@ -105,7 +105,7 @@ export default function Welcome() {
         </View>
         {last ? (
           <Pressable
-            onPress={() => router.push('/sign-up')}
+            onPress={() => router.push('/onboarding')}
             accessibilityRole="button"
             style={({ pressed }) => [styles.cta, pressed && styles.pressed]}>
             <Text style={styles.ctaText}>Get started</Text>

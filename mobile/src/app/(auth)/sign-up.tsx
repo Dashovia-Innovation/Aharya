@@ -1,4 +1,4 @@
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 
 import {
@@ -10,28 +10,41 @@ import {
   SocialButtons,
 } from '@/components/auth';
 
+// The param comes from the URL, so tolerate it being missing or malformed
+function firstName(profile?: string) {
+  try {
+    const name = JSON.parse(profile ?? '{}').name;
+    return typeof name === 'string' && name.trim() ? name.trim().split(' ')[0] : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 export default function SignUp() {
+  // Onboarding answers (name, age, sex, ...) collected before this screen
+  const { profile } = useLocalSearchParams<{ profile?: string }>();
+  const name = firstName(profile);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [confirm, setConfirm] = useState('');
-  const [errors, setErrors] = useState<{ email?: string; password?: string; confirm?: string }>({});
+  const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
 
   function onSubmit() {
     const next = {
       email: isEmail(email) ? undefined : 'Enter a valid email address',
       password: password.length >= 6 ? undefined : 'Password must be at least 6 characters',
-      confirm: confirm === password ? undefined : 'Passwords do not match',
     };
     setErrors(next);
-    if (next.email || next.password || next.confirm) return;
+    if (next.email || next.password) return;
+    // ponytail: no backend yet, create the account with { email, password, profile } here
     router.push({ pathname: '/verify', params: { email } });
   }
 
   return (
-    <AuthScreen title={"Let's get\nStarted"} subtitle="Create an account to analyse your reports.">
+    <AuthScreen
+      title={name ? `Almost done,\n${name}` : 'Create your\naccount'}
+      subtitle="Save your profile to get your report insights.">
       <Field
         label="Email"
-        icon="mail"
         placeholder="you@example.com"
         keyboardType="email-address"
         autoComplete="email"
@@ -42,28 +55,16 @@ export default function SignUp() {
       />
       <Field
         label="Password"
-        icon="lock"
         secure
         placeholder="At least 6 characters"
         autoComplete="new-password"
         textContentType="newPassword"
         value={password}
         onChangeText={setPassword}
+        onSubmitEditing={onSubmit}
         error={errors.password}
       />
-      <Field
-        label="Confirm password"
-        icon="lock"
-        secure
-        placeholder="Re-enter password"
-        autoComplete="new-password"
-        textContentType="newPassword"
-        value={confirm}
-        onChangeText={setConfirm}
-        onSubmitEditing={onSubmit}
-        error={errors.confirm}
-      />
-      <PrimaryButton title="Sign up" onPress={onSubmit} />
+      <PrimaryButton title="Create account" onPress={onSubmit} />
       <SocialButtons />
       <FooterLink
         text="Already have an account?"

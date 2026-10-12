@@ -32,8 +32,11 @@ type Step = {
       range?: [number, number];
       maxLength?: number;
     }
-  | { kind: 'choice' | 'multi'; options: string[] }
+  | { kind: 'choice' | 'multi'; options: Option[] }
 );
+
+type Option = { label: string; hint?: string };
+const plain = (...labels: string[]): Option[] => labels.map((label) => ({ label }));
 
 const STEPS: Step[] = [
   {
@@ -60,7 +63,7 @@ const STEPS: Step[] = [
     kind: 'choice',
     title: "What's your\nsex?",
     subtitle: 'Many reference ranges differ by sex.',
-    options: ['Female', 'Male', 'Other'],
+    options: plain('Female', 'Male', 'Other'),
   },
   {
     key: 'height',
@@ -89,7 +92,24 @@ const STEPS: Step[] = [
     kind: 'choice',
     title: 'What do\nyou eat?',
     subtitle: 'Your meal plan will only use foods that fit.',
-    options: ['Vegetarian', 'Eggetarian', 'Non-vegetarian', 'Vegan'],
+    options: [
+      {
+        label: 'Vegetarian',
+        hint: 'No meat, fish or eggs',
+      },
+      {
+        label: 'Eggetarian',
+        hint: 'Vegetarian, plus eggs',
+      },
+      {
+        label: 'Non-vegetarian',
+        hint: 'Includes meat, fish and eggs',
+      },
+      {
+        label: 'Vegan',
+        hint: 'No animal products, including dairy',
+      },
+    ],
   },
   {
     key: 'conditions',
@@ -97,7 +117,15 @@ const STEPS: Step[] = [
     optional: true,
     title: 'Any health\nconditions?',
     subtitle: 'Select all that apply.',
-    options: ['Diabetes', 'Thyroid', 'Blood pressure', 'Cholesterol', 'PCOS', 'Kidney', 'None'],
+    options: plain(
+      'Diabetes',
+      'Thyroid',
+      'Blood pressure',
+      'Cholesterol',
+      'PCOS',
+      'Kidney',
+      'None',
+    ),
   },
   {
     key: 'allergies',
@@ -145,13 +173,18 @@ export default function Onboarding() {
     const err = validate(step, value);
     if (err) return setError(err);
     if (!last) return setIndex(index + 1);
-    // ponytail: no backend yet, send `answers` to the profile API here
-    router.replace('/home');
+    finish(answers);
+  }
+
+  // Profile first, account second: hand the answers to sign-up, which saves them with the account
+  function finish(profile: Answers) {
+    router.push({ pathname: '/sign-up', params: { profile: JSON.stringify(profile) } });
   }
 
   function back() {
     setError(undefined);
-    setIndex(index - 1);
+    if (index === 0) router.back();
+    else setIndex(index - 1);
   }
 
   // Android back button steps back through questions instead of leaving onboarding
@@ -182,10 +215,10 @@ export default function Onboarding() {
         <View style={local.topBar}>
           <Pressable
             onPress={back}
-            disabled={index === 0}
+            disabled={index === 0 && !router.canGoBack()}
             accessibilityRole="button"
             accessibilityLabel="Previous question"
-            style={[local.iconBtn, index === 0 && local.hidden]}>
+            style={[local.iconBtn, index === 0 && !router.canGoBack() && local.hidden]}>
             <SymbolView
               name={{ ios: 'chevron.left', android: 'arrow_back', web: 'arrow_back' }}
               size={22}
@@ -238,34 +271,47 @@ export default function Onboarding() {
               {!!step.unit && <Text style={[local.unit, { color: c.muted }]}>{step.unit}</Text>}
             </View>
           ) : (
+            // Large separate cards: obviously tappable, and the selected one is filled
             <View
-              style={local.options}
+              style={local.cards}
               accessibilityRole={step.kind === 'choice' ? 'radiogroup' : undefined}>
-              {step.options.map((o) => {
-                const on = ((value as string[] | undefined) ?? []).includes(o);
+              {step.options.map(({ label, hint }) => {
+                const on = ((value as string[] | undefined) ?? []).includes(label);
+                const fg = on ? c.buttonText : c.text;
                 return (
                   <Pressable
-                    key={o}
-                    onPress={() => toggle(o)}
+                    key={label}
+                    onPress={() => toggle(label)}
                     accessibilityRole={step.kind === 'choice' ? 'radio' : 'checkbox'}
                     accessibilityState={{ checked: on }}
+                    accessibilityLabel={hint ? `${label}. ${hint}` : label}
                     style={({ pressed }) => [
-                      local.option,
-                      { borderColor: on ? c.title : c.border, backgroundColor: c.surface },
-                      pressed && styles.pressed,
+                      local.card,
+                      { backgroundColor: on ? c.buttonBg : c.card },
+                      pressed && local.cardPressed,
                     ]}>
-                    <Text style={[local.optionText, { color: c.text }]}>{o}</Text>
+                    <View style={local.cardText}>
+                      <Text style={[local.cardLabel, { color: fg }]}>{label}</Text>
+                      {!!hint && (
+                        <Text
+                          style={[local.hint, { color: on ? fg : c.muted }, on && local.hintOn]}>
+                          {hint}
+                        </Text>
+                      )}
+                    </View>
                     <View
                       style={[
-                        step.kind === 'choice' ? local.radio : local.checkbox,
-                        { borderColor: on ? c.title : c.border },
-                        on && { backgroundColor: c.title },
+                        local.mark,
+                        step.kind === 'multi' && local.markSquare,
+                        { borderColor: on ? fg : c.border },
+                        on && { backgroundColor: fg },
                       ]}>
                       {on && (
                         <SymbolView
                           name={{ ios: 'checkmark', android: 'check', web: 'check' }}
-                          size={14}
-                          tintColor={c.bg}
+                          size={13}
+                          weight="bold"
+                          tintColor={c.buttonBg}
                         />
                       )}
                     </View>
@@ -282,9 +328,10 @@ export default function Onboarding() {
           {step.optional && (
             <Pressable
               onPress={() => {
-                setAnswers((a) => ({ ...a, [step.key]: step.kind === 'input' ? '' : [] }));
+                const skipped = { ...answers, [step.key]: step.kind === 'input' ? '' : [] };
+                setAnswers(skipped);
                 setError(undefined);
-                if (last) router.replace('/home');
+                if (last) finish(skipped);
                 else setIndex(index + 1);
               }}
               accessibilityRole="button"
@@ -315,18 +362,22 @@ const local = StyleSheet.create({
   },
   bigInput: { flex: 1, fontSize: 32, fontWeight: '600', minHeight: 64 },
   unit: { fontSize: 20, fontWeight: '600' },
-  options: { marginTop: 32, gap: 12 },
-  option: {
-    minHeight: 60,
+  cards: { marginTop: 32, gap: 10 },
+  card: {
+    minHeight: 64,
     paddingHorizontal: 20,
-    borderRadius: 16,
-    borderWidth: 2,
+    paddingVertical: 16,
+    borderRadius: 18,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    gap: 16,
   },
-  optionText: { fontSize: 17, fontWeight: '600' },
-  radio: {
+  cardPressed: { transform: [{ scale: 0.98 }] },
+  cardText: { flex: 1, gap: 3 },
+  cardLabel: { fontSize: 17, fontWeight: '600' },
+  hint: { fontSize: 14, lineHeight: 19 },
+  hintOn: { opacity: 0.85 },
+  mark: {
     width: 24,
     height: 24,
     borderRadius: 12,
@@ -334,13 +385,6 @@ const local = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  checkbox: {
-    width: 24,
-    height: 24,
-    borderRadius: 7,
-    borderWidth: 2,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+  markSquare: { borderRadius: 7 },
   footer: { paddingHorizontal: 24, paddingBottom: 16 },
 });

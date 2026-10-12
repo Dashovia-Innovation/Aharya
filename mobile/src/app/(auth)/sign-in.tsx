@@ -33,7 +33,6 @@ export default function SignIn() {
     <AuthScreen title={'Hey,\nWelcome Back'} subtitle="Sign in to see your report insights.">
       <Field
         label="Email"
-        icon="mail"
         placeholder="you@example.com"
         keyboardType="email-address"
         autoComplete="email"
@@ -44,7 +43,6 @@ export default function SignIn() {
       />
       <Field
         label="Password"
-        icon="lock"
         secure
         placeholder="Your password"
         autoComplete="password"
@@ -65,7 +63,7 @@ export default function SignIn() {
       <FooterLink
         text="Don't have an account?"
         action="Sign up"
-        onPress={() => router.dismissTo('/sign-up')}
+        onPress={() => router.push('/onboarding')}
       />
     </AuthScreen>
   );

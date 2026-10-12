@@ -24,7 +24,6 @@ export default function NewPassword() {
       subtitle="Your new password must be different from your previous one.">
       <Field
         label="New password"
-        icon="lock"
         secure
         placeholder="At least 6 characters"
         autoComplete="new-password"
@@ -35,7 +34,6 @@ export default function NewPassword() {
       />
       <Field
         label="Confirm password"
-        icon="lock"
         secure
         placeholder="Re-enter password"
         autoComplete="new-password"

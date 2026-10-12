@@ -17,7 +17,6 @@ export default function ForgotPassword() {
     <AuthScreen title={'Forgot\nPassword?'} subtitle="Enter your email and we'll send you a code.">
       <Field
         label="Email"
-        icon="mail"
         placeholder="you@example.com"
         keyboardType="email-address"
         autoComplete="email"

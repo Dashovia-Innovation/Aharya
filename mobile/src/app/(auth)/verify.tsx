@@ -17,7 +17,7 @@ export default function Verify() {
     setError(undefined);
     // ponytail: no backend yet, any 4 digits pass; verify the code server-side here
     if (reset) router.push('/new-password');
-    else router.replace('/onboarding');
+    else router.replace('/home');
   }
 
   return (
